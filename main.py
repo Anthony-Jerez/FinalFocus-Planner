@@ -85,7 +85,7 @@ def get_completion(prompt, model="gpt-4o"):
     response = client.chat.completions.create(
         model=model,
         messages=messages,
-        temperature=0.3,
+        temperature=0.5,
         max_tokens=4000,
     )
     return response.choices[0].message.content
@@ -142,7 +142,7 @@ def create_schedule(schedule_dict, start_hr, start_min, end_hr, end_min, name, t
     ax2.set_ylabel('Time')
     plt.title(title, y=1.07)
     # Save and display study schedule in a generated png file
-    plt.savefig(f'{name}-Study-Plan-.png'.format(title), dpi=200)
+    plt.savefig(f'{name}-Study-Plan.png'.format(title), dpi=200)
     plt.close(fig)
     print("Study planner was successfully created.")
 
@@ -162,21 +162,12 @@ def main():
     # Prompt for student's availability for studying
     hours, minutes = input('How much time (in hours and minutes) can you dedicate to studying each day. Enter hours '
                            'followed by minutes seperated by comma: ').split(", ")
-    time = f"{name} can allocate {hours} hours and {minutes} minutes to studying each day. When making the schedule also " \
-           f"consider {name}'s meal and break time durations which will be specified later on. Also, ensure that all the " \
-           f"{hours} hours and {minutes} minutes that {name} requested to be allocated for studying are allocated for " \
-           f"studying in his schedule creation. This means that if {name} requested {hours} hours and {minutes} minutes " \
-           f"to be allocated for studying then you must ensure that ALL of that time is actually allocated for studying. " \
-           f"Assign the meal and break times EXACTLY (meaning not adding or removing time) as how {name} will specify " \
-           f"later on."
     # Prompt student for their subjects of main priority
-    priority_subjects = f"{name} needs to prioritize studying the following topics: "
-    priority_subjects += input(
+    priority_subjects = input(
         'Specify the topics that are the most important for you to focus on right now seperated by '
         'comma: ')
     # Prompt student for their main goals
-    goals = f"{name}'s main goals are to: "
-    goals += input("List your main goals. Separate each goal by comma: ")
+    goals = input("List your main goals. Separate each goal by comma: ")
     # Prompt student for start and end times for each day
     start_hr, start_min = input(
         "Enter the time that you start your day based on the 24-hour clock. Specify hour followed "
@@ -198,41 +189,42 @@ def main():
     breaks_num = input("Enter the number of breaks you prefer to have on each day: ")
     break_duration = input("Enter in minutes how long each break should last: ")
     title = f"{name}'s Final Exam Week Five-Day Study Plan"
-    prompt = f'''You are an assistant tasked with creating personalized study schedules for students. Generate a 5-Day 
-    personalized study schedule in JSON format for a student named {name} who is preparing for their final exams. {name} 
-    needs to study the following subjects: {topics_str}. {time}. {preferences}. {priority_subjects}. {goals}. {name} 
-    always starts his day at {start_hr}:{start_min} and ends at {end_hr}:{end_min} for all of the five days. Alex MUST 
-    have breakfast everyday at {breakfast_hr}:{breakfast_min}, MUST have lunch everyday at {lunch_hr}:{lunch_min}, 
-    MUST have dinner everyday at {dinner_hr}:{dinner_min}. Each meal MUST last {meal_duration} minutes. {name} also MUST 
-    have EXACTLY {breaks_num} breaks during each day. Each break MUST last {break_duration} minutes. Each day should be 
-    associated with an integer where 1 is Monday, 2 is Tuesday, 3 is Wednesday, 4 is Thursday, and 5 is Friday. Each day 
-    should have a list of activities with start_hour (as an integer), start_minute (as an integer), duration in minutes (
-    as an integer), and subject. All days follow the 24-hour clock. You MUST ensure there are NO time conflicts. Also, 
-    ensure that each day starts and ends at the same specific time. For example, if the initial activity assigned for 
-    Monday has a start hour of 9 and start minute of 0, then the rest of the days must have their initial activities 
-    start from the same time. Additionally, if the student's day is set to end at {end_hr}:{end_min}, then it MUST end at 
-    that time of day for ALL of the days. Also, if the student's breakfast start time is set to start at {breakfast_hr}:
-    {breakfast_min}, if student's lunch time is set to start at {lunch_hr}:{lunch_min}, and if student's dinner time is 
-    set to start at {dinner_hr}:{dinner_min}, then these subjects MUST be included and these start times specified before 
-    in this same sentence MUST happen for ALL of the days. Along with meal start times, each meal (referring to 
-    breakfast, lunch, and dinner) MUST last for ONLY a total of {meal_duration} minutes as specified before. This means 
-    don't allocate more time or less time for meals and break times than what is required and specified. Ensure that 
-    there are breakfast, lunch, dinner, and break activities assigned for each day where each of breakfast, lunch, 
-    and dinner can only occur once for each day. Remember that each day must have exactly {breaks_num} breaks and each 
-    break is ONLY {break_duration} minutes long. DO NOT create a 'End of Day' subject or any other subjects of your own 
-    aside from those specified before. You must generate schedules for Monday(1) to Friday(5) by allocating hours based 
-    on {name}'s time availability, priorities, main goals, and the rest of the provided information mentioned before in 
-    the previous sentences. You MUST follow a similar format as shown in this example for a person's Monday schedule 
-    delimited by triple backticks```{example}```. Remember this is just an example and you MUST make sure to create the 
-    schedule based on {name}'s provided information. Once again it has to be returned in JSON format and do not include 
-    any markdown notation like ```json so that I can parse the JSON string.'''
+    # Construction of prompt
+    prompt = f'''
+    You are an assistant tasked with creating personalized study schedules for students. Generate a 5-Day personalized study schedule in JSON format for a student named {name} who is preparing for final exam week. {name} needs to study the following subjects: {topics_str}.
+
+    Daily Schedule Requirements:
+    - All days follow the 24-hour clock 
+    - Start day at {start_hr}:{start_min} and end at {end_hr}:{end_min} for all five days.
+    - Meals: 
+      - Breakfast MUST occur at {breakfast_hr}:{breakfast_min} and last a total of {meal_duration} minutes for all five days.
+      - Lunch MUST occur at {lunch_hr}:{lunch_min} and last a total of {meal_duration} minutes for all five days.
+      - Dinner MUST occur at {dinner_hr}:{dinner_min} and last a total of {meal_duration} minutes for all five days.
+    - Breaks: 
+      - There must be exactly {breaks_num} breaks each day, each lasting a total of {break_duration} minutes.
+    - For the {topics_str} topics that {name} MUST study for:
+      - {name} MUST dedicate a total of {hours} hours and {minutes} minutes to studying each day.
+      - {preferences}
+      - {name} needs to prioritize studying the following topics: {priority_subjects}.
+      - {name}'s main goals are to: {goals}.
+      - The studying subjects start times and durations are determined based on {name}'s specified time availability, preferences, priority subjects, and main goals. Ensure they don't conflict with the already established meal/break start times and durations.
+
+    Instructions:
+    - Each day is represented by an integer (1=Monday, 2=Tuesday, 3=Wednesday, 4=Thursday, 5=Friday).
+    - List activities for each day with start_hour (integer), start_minute (integer), duration (minutes as an integer), and subject (either meals, breaks, or topics {name} must study for).
+    - Ensure no time conflicts and consistent start and end times for each day.
+    - Include meals at the specified times and durations. Also, include breaks at the specified durations. This means do not allocate more time or less time for meals and break times than what is specified.
+    - ONLY create subjects for meals, breaks, and {topics_str} topics that {name} must study for.
+    - Ensure the schedule adheres to the provided information and return it in JSON format without any markdown notation. You must follow the EXACT format as shown in this example for a person's Monday schedule delimited by triple backticks```{example}```. Once again this is only an example and you must make sure to construct {name}'s schedule based on the daily schedule requirements, instructions, and the rest of the information provided before.'''
     # Retrieve generated schedule in JSON format
+    print(prompt)
     response = get_completion(prompt)
     try:
         schedule_dict = json.loads(response)
+        print(schedule_dict)
     except json.JSONDecodeError as e:
         print(f"Error parsing JSON: {e}")
-    # Plot and display study schedule
+    # Plot study schedule
     create_schedule(schedule_dict, start_hr, start_min, end_hr, end_min, name, title)
 
 
