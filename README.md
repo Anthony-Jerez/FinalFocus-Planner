@@ -16,6 +16,7 @@ Final Focus Planner is an AI-powered tool that allows students and educational p
 #### Features Implemented: 
 - [x] Users can create personalized study plans according to individual factors including time availability, preferences, prioritization, and short-term goals.
 - [x] Time is allocated for subjects to maximize study efficiency and overall performance during final exam weeks.
+- [x] Utilizes OpenAI's GPT-4o to generate optimal study schedules.
 
 
 ## Example Output for a Student
