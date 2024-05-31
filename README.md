@@ -18,6 +18,6 @@ Final Focus Planner is an AI-powered tool that allows students and educational p
 - [x] Time is allocated for subjects to maximize study efficiency and overall performance during final exam weeks.
 
 
-## Example Output for a Student:
+## Example Output for a Student
 ![Example](README_assets/Anthony-StudyPlan-Ex.png)
 
